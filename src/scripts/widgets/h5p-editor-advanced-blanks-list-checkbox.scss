@@ -1,0 +1,14 @@
+.h5peditor-advanced-blanks-list-checkbox {
+  .list {
+    margin-top: 0.5rem;
+
+    &> .h5peditor-widget-wrapper {
+      padding-block-end: 0.5rem;
+      padding-inline: 0.5rem;
+    }
+  }
+
+  .display-none {
+    display: none;
+  }
+}
