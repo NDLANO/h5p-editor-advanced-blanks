@@ -48,7 +48,7 @@ export default class AdvancedBlanksListCheckbox {
    * @param {Event} event Event added to the list.
    */
   handleListItemAdded(event) {
-    if (event?.data instanceof H5PEditor.Group) {
+    if (!(event?.data instanceof H5PEditor.Group)) {
       return;
     }
 
