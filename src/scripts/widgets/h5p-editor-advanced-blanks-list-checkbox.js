@@ -39,8 +39,42 @@ export default class AdvancedBlanksListCheckbox {
       this.fieldInstance.on('addedItem', this.handleListItemAdded);
       this.fieldInstance.on('removedItem', this.handleListItemRemoved);
 
+      this.multipleConditions = [];
+      if (Array.isArray(this.field.listCheckbox.allowMultipleWhen)) {
+        // Fields to follow may not exist yet, so wait for the form to be ready
+        this.parent.ready(() => {
+          this.initMultipleConditions(this.field.listCheckbox.allowMultipleWhen);
+          this.updateCheckboxes();
+        });
+      }
+
       this.updateCheckboxes();
     }
+  }
+
+  /**
+   * Initialize conditions that allow multiple checkboxes to be checked.
+   * @param {object[][]} allowMultipleWhen Alternative sets of rules, all rules of one set must apply.
+   */
+  initMultipleConditions(allowMultipleWhen) {
+    this.multipleConditions = allowMultipleWhen.map((rules) => rules.map((rule) => {
+      const field = H5PEditor.findField(rule.field, this.parent);
+      if (field?.changes) {
+        field.changes.push(() => {
+          this.updateCheckboxes();
+        });
+      }
+
+      return { field: field, equals: rule.equals };
+    }));
+  }
+
+  /**
+   * Determine whether multiple checkboxes may be checked.
+   * @return {boolean} True, if multiple checkboxes may be checked.
+   */
+  isMultipleAllowed() {
+    return this.multipleConditions.some((rules) => rules.every((rule) => rule.field?.value === rule.equals));
   }
 
   /**
@@ -91,7 +125,7 @@ export default class AdvancedBlanksListCheckbox {
     });
 
     // If one checkbox is checked, hide all the others, else show all
-    const isOneChecked = checkboxes.some((checkbox) => checkbox.value);
+    const isOneChecked = !this.isMultipleAllowed() && checkboxes.some((checkbox) => checkbox.value);
     checkboxes.forEach((checkbox) => {
       checkbox.$input
         .parents(`.field-name-${this.field.listCheckbox.checkbox}.boolean`)
